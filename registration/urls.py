@@ -8,5 +8,7 @@ urlpatterns = [
     path("login/process/", views.process_login, name='process'),
     path("home/", views.home, name='home'),
     path("user/home",views.UserHomePage,name="userhomepage"),
-    path("company/home",views.CompanyHomePage,name="CompanyHomePage")
+    path("company/home",views.CompanyHomePage,name="CompanyHomePage"),
+    path("user/AddWaste/",views.AddWaste,name="userhomepage"),
+
 ]

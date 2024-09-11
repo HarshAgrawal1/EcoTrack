@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eco Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #2196F3;
+            --background-color: #F5F5F5;
+            --card-background: #FFFFFF;
+            --text-color: #333333;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .welcome {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            box-shadow: var(--box-shadow);
+        }
+
+        .button {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            margin: 10px 10px 10px 0;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .dashboard-item {
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .dashboard-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .dashboard-item h2 {
+            color: var(--secondary-color);
+            margin-bottom: 15px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+        }
+
+        .checkbox-container {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .activity-list {
+            list-style-type: none;
+        }
+
+        .activity-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .activity-list li:last-child {
+            border-bottom: none;
+        }
+
+        .analytics-chart {
+            width: 100%;
+            height: 200px;
+            background-color: #e9e9e9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: var(--border-radius);
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="welcome">
+            Welcome to Your Eco Dashboard, {{ name }}!
+        </div>
+        
+        <button class="button" id="recommendationBtn">Get Eco Recommendation</button>
+        {% if result%}
+
+        <h2>{{result}}</h2>
+        {% endif%}
+        
+        <div class="dashboard">
+
+            {% if messages %}
+               {% for message in messages %}
+                  {% if message.tags %}  <script>alert("{{ message }}")</script> {% endif %}
+
+               {% endfor %}
+
+            {% endif %}
+            <div class="dashboard-item">
+                <h2>Waste Analytics</h2>
+                <div class="analytics-chart">
+                    [Waste Analytics Chart]
+                </div>
+                <p>Your eco-impact visualization will be displayed here.</p>
+            </div>
+            
+            <div class="dashboard-item">
+                <h2>Recent Eco Activities</h2>
+                <ul class="activity-list">
+                    {% for activity in recent_activities %}
+                        <li>{{ activity.type }} - {{ activity.quantity }} {{ activity.measure }}</li>
+                    {% empty %}
+                        <li>No recent activities</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <div class="dashboard-item">
+                <h2>Log Waste</h2>
+                <form action="AddWaste/" method="POST">
+                    {% csrf_token %}
+                    
+                    <label for="waste_name">Waste Type:</label>
+                    <input type="text" id="waste_name" name="waste_name" required placeholder="e.g., Plastic, Paper, Food">
+                    
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" id="quantity" name="quantity" step="0.01" required placeholder="Enter amount">
+                    
+                    <label for="unit">Unit:</label>
+                    <select id="unit" name="unit" required>
+                        <option value="kg">Kilograms</option>
+                        <option value="lbs">Pounds</option>
+                        <option value="liters">Liters</option>
+                        <option value="cubic_meters">Cubic Meters</option>
+                    </select>
+                    
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="segregated" name="segregated">
+                        <label for="segregated">I have segregated this waste</label>
+                    </div>
+                    
+                    <input type="submit" value="Log Waste" class="button">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('recommendationBtn').addEventListener('click', function() {
+            // Add your API call logic here
+            alert('Eco recommendation coming soon!');
+        });
+    </script>
+</body>
+</html>

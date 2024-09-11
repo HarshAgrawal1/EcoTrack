@@ -5,12 +5,12 @@ from django.shortcuts import HttpResponse,redirect
 from django.http import JsonResponse
 from django.http import HttpResponse
 from django.template import loader
-from registration.models import Registration
+from registration.models import Registration,Additem
 from django.contrib.auth.models import User,auth
 from django.contrib import messages
 from wsrms import settings
 import requests
-
+from together import Together
 from django.conf import settings
 import json
 import random
@@ -89,11 +89,85 @@ def home(request):
     return redirect ("/company/home")
 
 def UserHomePage(request):
-    return HttpResponse("User Home Page")
+    name=request.session['name']
+    email=request.session['email']
+    client = Together(api_key="69a37fbbd710ff4edd5c97b09b5514093dadbddccef5348c1fc764b7f666a2cb")
+    Recent = Additem.objects.filter(email=email)[:5]
+    recent_list = [
+        {'type': item.type, 'quantity': item.quantity}
+        for item in Recent
+    ]
+
+    recent = ""
+    for item in recent_list:
+        recent += f"Type: {item['type']}, Quantity: {item['quantity']}\n"
+    
+    
+    stream = client.chat.completions.create(
+              model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+              messages=[{"role": "user", "content": "This is my waste till now"+ recent +"Suggest me in fun way where this waste can use after recycle"}],
+              stream=True,
+        )
+        # response = client.chat.completions.create(
+        #     model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+        #     messages=[],
+        #     max_tokens=512,
+        #     temperature=0.7,
+        #     top_p=0.7,
+        #     top_k=50,
+        #     repetition_penalty=1,
+        #     stop=["<|eot_id|>","<|eom_id|>"],
+        #     stream=True
+        # )
+    full_response = ""
+    for chunk in stream:
+        if chunk.choices[0].delta.content is not None:
+            content = chunk.choices[0].delta.content
+            full_response += content
+            print(content, end='', flush=True)
+
+# Render the result in the templat
+    # request.session['result']=full_response
+            
+    recent_activities = Additem.objects.filter(email=email)[:5]
+    context={
+        'name':name,
+        'result':full_response,
+        'recent_activities':recent_activities
+    }
+    return render (request,'UserDashboard.html',context=context)
 
 
 def CompanyHomePage(request):
-    return HttpResponse("Company Home Page")
+    name=request.session['name']
+    email=request.session['email']
+
+    
+    context={
+        'name':name
+    }
+    return render(request,'CompanyDashboard.html',context=context)
+
+def AddWaste(request):
+    if request.method=="POST":
+        email=request.session['email']
+        type=request.POST['waste_name']
+        quantity=request.POST['quantity']
+        measure=request.POST['unit']
+
+        new_item = Additem(email=email,type=type,quantity=quantity,measure=measure)
+
+        new_item.save()
+
+        message=messages.success(request,"Added item Successsfully!!")
+
+        return redirect("/home")
+
+    return HttpResponse("No")
+
+
+
+        
 
 
 
