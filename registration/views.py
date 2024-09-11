@@ -43,7 +43,7 @@ def Register(request):
             send_mail(
                     subject='Login Successful',
                     message=f'Login Successful',
-                    from_email='agrawalharsh0522@gmail.com',  # Use the email you set in settings.py
+                    from_email='Your email id',  # Use the email you set in settings.py
                     recipient_list=[email],
                     fail_silently=False,
             )
@@ -91,7 +91,7 @@ def home(request):
 def UserHomePage(request):
     name=request.session['name']
     email=request.session['email']
-    client = Together(api_key="69a37fbbd710ff4edd5c97b09b5514093dadbddccef5348c1fc764b7f666a2cb")
+    client = Together(api_key="API KEY")
     Recent = Additem.objects.filter(email=email)[:5]
     recent_list = [
         {'type': item.type, 'quantity': item.quantity}
