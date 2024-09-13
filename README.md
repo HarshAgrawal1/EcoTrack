@@ -13,6 +13,7 @@ System Overview
     User Data Entry for Waste Management
     Distance-based Recycler Notification System
     Confirmation Email System
+    Gamification -Reward System
 
 # Workflow
 
