@@ -43,7 +43,7 @@ def Register(request):
             send_mail(
                     subject='Login Successful',
                     message=f'Login Successful as '+ user_type,
-                    from_email='agrawalharsh0522@gmail.com',  # Use the email you set in settings.py
+                    from_email='',  # Use the email you set in settings.py
                     recipient_list=[email],
                     fail_silently=False,
             )
@@ -95,7 +95,7 @@ def home(request):
 def UserHomePage(request):
     name=request.session['name']
     email=request.session['email']
-    client = Together(api_key="69a37fbbd710ff4edd5c97b09b5514093dadbddccef5348c1fc764b7f666a2cb")
+    client = Together(api_key="")
     Recent = Additem.objects.filter(email=email)[:5]
     recent_list = [
         {'type': item.type, 'quantity': item.quantity}
@@ -196,7 +196,7 @@ def collect_waste(request,waste_id):
         send_mail(
                     subject='Will get your Waste to Recycle',
                     message=f'Your request is accepted by '+company_name+'and will get in touch with you to collect waste',
-                    from_email='agrawalharsh0522@gmail.com',  # Use the email you set in settings.py
+                    from_email='',  # Use the email you set in settings.py
                     recipient_list=[user_email],
                     fail_silently=False,
             )
@@ -247,7 +247,7 @@ def order_done(request,waste_id):
         send_mail(
                     subject='Congratulations,You won coins!!',
                     message=f'We got your waste items in segregated manner , And you some coins .Here\'s your total '+str(userdata.points)+'.',
-                    from_email='agrawalharsh0522@gmail.com',  # Use the email you set in settings.py
+                    from_email='',  # Use the email you set in settings.py
                     recipient_list=[userdata.email],
                     fail_silently=False,
         )
