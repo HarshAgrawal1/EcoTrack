@@ -32,6 +32,38 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            position: relative; /* Added relative position */
+        }
+
+        .coins {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: var(--coins-bg-color);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 50px; /* Circle-like appearance */
+            box-shadow: var(--box-shadow);
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Space between coin icon and text */
+        }
+
+        .coins-icon {
+            background-color: rgba(255, 215, 0, 0.2); /* Semi-transparent background for icon */
+            padding: 10px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .coins-icon svg {
+            fill: white; /* Coin icon color */
+            width: 24px;
+            height: 24px;
         }
 
         .welcome {
@@ -150,25 +182,33 @@
 </head>
 <body>
     <div class="container">
+        <div class="coins">
+            <div class="coins-icon">
+                <!-- Example of coin SVG icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v5h-2V7zm0 6h2v2h-2v-2z"></path>
+                </svg>
+            </div>
+            Coins: {{ coins }}
+        </div>
         <div class="welcome">
             Welcome to Your Eco Dashboard, {{ name }}!
         </div>
         
         <button class="button" id="recommendationBtn">Get Eco Recommendation</button>
         {% if result%}
-
         <h2>{{result}}</h2>
         {% endif%}
         
         <div class="dashboard">
-
             {% if messages %}
-               {% for message in messages %}
-                  {% if message.tags %}  <script>alert("{{ message }}")</script> {% endif %}
-
-               {% endfor %}
-
+                {% for message in messages %}
+                    {% if message.tags %}
+                        <script>alert("{{ message }}")</script>
+                    {% endif %}
+                {% endfor %}
             {% endif %}
+            
             <div class="dashboard-item">
                 <h2>Waste Analytics</h2>
                 <div class="analytics-chart">

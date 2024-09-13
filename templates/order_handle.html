@@ -147,46 +147,37 @@
 <body>
     <div class="container">
         <div class="welcome">
-            Welcome to Your Company Dashboard, {{name }}!
+            Welcome to Your Company Order Details, {{name }}!
         </div>
 
         <!-- New Button for Redirection -->
-        <form action="order_handle/" method="POST">
-            {% csrf_token %}
-            <button type="submit" class="button">Accepted Order Details</button>
-        </form>
+        
         
         <div class="dashboard">
             <div class="dashboard-item">
-                <h2>Nearby Waste Reports</h2>
+                <h2>Accepted Waste details</h2>
                 <ul class="waste-list">
-                    {% for waste in waste_reports %}
+                    {% for waste in order_list %}
                     <li class="waste-item">
                         <div class="waste-info">
                             <strong>{{waste.id}} : {{ waste.type }}</strong> - {{ waste.quantity }} {{ waste.measure }}
                             <br>
-                             <strong>Reported by: {{ waste.email }}</strong>
+                             <strong>Reported by: {{ waste.user_email }}</strong>
                         </div>
                         <div class="waste-actions">
-                            <form action="{% url 'collect_waste' waste_id=waste.id %}" method="POST">
+                            <form action="{% url 'order_done' waste_id=waste.id %}" method="POST">
                                 {% csrf_token %}
-                                <button class="button">Collect</button>
+                                <button class="button">Done</button>
                             </form>
-                            <button class="button secondary" onclick="viewDetails({{ waste.id }})">Details</button>
+                            
                         </div>
                     </li>
                     {% empty %}
-                    <li>No waste reports nearby</li>
+                    <li>No waste orders</li>
                     {% endfor %}
                 </ul>
             </div>
         </div>
     </div>
-
-    <script>
-        function viewDetails(wasteId) {
-            alert('Viewing details for waste ID: ' + wasteId);
-        }
-    </script>
 </body>
 </html>

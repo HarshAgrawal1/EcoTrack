@@ -5,7 +5,7 @@ from django.shortcuts import HttpResponse,redirect
 from django.http import JsonResponse
 from django.http import HttpResponse
 from django.template import loader
-from registration.models import Registration,Additem
+from registration.models import Registration,Additem,OrderDetail
 from django.contrib.auth.models import User,auth
 from django.contrib import messages
 from wsrms import settings
@@ -31,19 +31,19 @@ def Register(request):
         address=request.POST['address']
         user_type=request.POST['user_type']
 
-        if Registration.objects.filter(email=email).exists():
+        if Registration.objects.filter(email=email,work=user_type).exists():
             # Email already exists, do not save and return an error or simply return nothing
             
             return render(request, 'login.html', {'error': 'Email already exists'})
         else:
             # Email does not exist, save the new record
-            new_registration = Registration(name=name,email=email,password=password,address=address,work=user_type)
+            new_registration = Registration(name=name,email=email,password=password,address=address,work=user_type,points=0)
             
             new_registration.save()
             send_mail(
                     subject='Login Successful',
-                    message=f'Login Successful',
-                    from_email='Your email id',  # Use the email you set in settings.py
+                    message=f'Login Successful as '+ user_type,
+                    from_email='agrawalharsh0522@gmail.com',  # Use the email you set in settings.py
                     recipient_list=[email],
                     fail_silently=False,
             )
@@ -56,13 +56,15 @@ def process_login(request):
     if request.method=="POST":
         check_email=request.POST['email']
         check_password=request.POST['password']
+        user_type=request.POST['user_type']
 
         try:
-            user = Registration.objects.get(email=check_email)
+            user = Registration.objects.get(email=check_email,work=user_type)
             if user.password == check_password:
-               
+                request.session.set_expiry(60*15) 
                 request.session['name'] = user.name
                 request.session['email']=user.email
+                request.session['user_type']=user.work
                 return redirect("/home")
             else:
                 messages.error(request, 'Incorrect Password!!')
@@ -79,8 +81,10 @@ def process_login(request):
     return render(request,'login.html')
 
 def home(request):
+
     email=request.session['email']
-    user = Registration.objects.get(email=email)
+    user_type=request.session['user_type']
+    user = Registration.objects.get(email=email,work=user_type)
 
     if user.work=="user":
         return redirect("/user/home")
@@ -91,12 +95,13 @@ def home(request):
 def UserHomePage(request):
     name=request.session['name']
     email=request.session['email']
-    client = Together(api_key="API KEY")
+    client = Together(api_key="69a37fbbd710ff4edd5c97b09b5514093dadbddccef5348c1fc764b7f666a2cb")
     Recent = Additem.objects.filter(email=email)[:5]
     recent_list = [
         {'type': item.type, 'quantity': item.quantity}
         for item in Recent
     ]
+    coins=Registration.objects.get(email=email , work="user")
 
     recent = ""
     for item in recent_list:
@@ -124,7 +129,7 @@ def UserHomePage(request):
         if chunk.choices[0].delta.content is not None:
             content = chunk.choices[0].delta.content
             full_response += content
-            print(content, end='', flush=True)
+            # print(content, end='', flush=True)
 
 # Render the result in the templat
     # request.session['result']=full_response
@@ -133,7 +138,8 @@ def UserHomePage(request):
     context={
         'name':name,
         'result':full_response,
-        'recent_activities':recent_activities
+        'recent_activities':recent_activities,
+        'coins':coins.points
     }
     return render (request,'UserDashboard.html',context=context)
 
@@ -142,10 +148,19 @@ def CompanyHomePage(request):
     name=request.session['name']
     email=request.session['email']
 
-    
+    activities = Additem.objects.all()
+
+    activity_list = [
+        {'type': item.type, 'quantity': item.quantity,'email':item.email,'measure':item.measure,'id':item.waste_id}
+        for item in activities
+    ]
     context={
-        'name':name
+        'name':name,
+        'waste_reports':activity_list
+        
     }
+
+
     return render(request,'CompanyDashboard.html',context=context)
 
 def AddWaste(request):
@@ -155,7 +170,9 @@ def AddWaste(request):
         quantity=request.POST['quantity']
         measure=request.POST['unit']
 
-        new_item = Additem(email=email,type=type,quantity=quantity,measure=measure)
+        waste_id=random.randint(9999,99999)
+
+        new_item = Additem(email=email,type=type,quantity=quantity,measure=measure,waste_id=waste_id)
 
         new_item.save()
 
@@ -167,8 +184,82 @@ def AddWaste(request):
 
 
 
+def collect_waste(request,waste_id):
+    if request.method == "POST":
+        # waste_id = request.POST.get('waste_id')
+        company_name=request.session['name']
+        company_email=request.session['email']
+        user=Additem.objects.get(waste_id=waste_id)
+        
+        user_email=user.email
+
+        send_mail(
+                    subject='Will get your Waste to Recycle',
+                    message=f'Your request is accepted by '+company_name+'and will get in touch with you to collect waste',
+                    from_email='agrawalharsh0522@gmail.com',  # Use the email you set in settings.py
+                    recipient_list=[user_email],
+                    fail_silently=False,
+            )
+        
+        neworder=OrderDetail(company_email=company_email,user_email=user.email,type=user.type,quantity=user.quantity,measure=user.measure,waste_id=user.waste_id)
+        neworder.save()
+        user.delete()
+
+        return HttpResponse("You can collect  waste ID"+str(waste_id))
+    return HttpResponse("You are handling nothing")
+
+def order_handle(request):
+    company_name=request.session['name']
+    company_email=request.session['email']
+    if request.method=="POST":
+
+        order=OrderDetail.objects.filter(company_email=company_email)
+
+        order_list = [
+            {'type': item.type, 'quantity': item.quantity,'user_email':item.user_email,'measure':item.measure,'id':item.waste_id,'company_email':item.company_email}
+            for item in order
+        ]
+
+        context={
+            'order_list':order_list,
+            'name':company_name
+        }
+
+
+        return render(request,'order_handle.html',context)
+
+def order_done(request,waste_id):
+    if request.method=="POST":
+
+        user= OrderDetail.objects.get(waste_id=waste_id)
+
+        userdata=Registration.objects.get(email=user.user_email,work="user")
+
+        # userdata[0].points=userdata[0].points+(user[0].quantity)*2
+
+        # userdata[0].save()
+        # print (type(userdata.points))
+        userdata.points=userdata.points+int(5)
+        # print(userdata.points)
+        userdata.save()
+        user.delete()
+
+        send_mail(
+                    subject='Congratulations,You won coins!!',
+                    message=f'We got your waste items in segregated manner , And you some coins .Here\'s your total '+str(userdata.points)+'.',
+                    from_email='agrawalharsh0522@gmail.com',  # Use the email you set in settings.py
+                    recipient_list=[userdata.email],
+                    fail_silently=False,
+        )
+
         
 
+
+        return HttpResponse("Done")
+        
+
+    
+    
 
 
 
