@@ -6,6 +6,8 @@ A Smart Waste Segregation and Recycling Management Platform
 This project implements a basic Waste Segregation and Recycling Management System (WSRMS). The system aims to efficiently manage waste information, user data, and recycling notifications.
 System Overview
 
+https://youtu.be/76pSwdEtiqY -->Demo 
+
 # The WSRMS consists of the following key components:
  
     User Registration and Authentication
